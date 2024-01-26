@@ -1,0 +1,26 @@
+addr: 0.0.0.0:8080
+
+endpoints:
+  - route: /endpoint1
+    secret: secret123456
+    actions:
+      - event: push
+        command:
+          - echo
+          - Push on repository 1
+      - event: pull_request
+        command:
+          - echo
+          - Pull request on repository 1
+
+  - route: /endpoint2
+    secret: secret123456
+    actions:
+      - event: push
+        command:
+          - echo
+          - Push on repository 2
+      - event: pull_request
+        command:
+          - echo
+          - Pull request on repository 2
