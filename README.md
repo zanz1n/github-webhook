@@ -1,5 +1,7 @@
 # github-webhook
 
+The program consists of a github webhook event listener that executes custom commands based on user configuration.
+
 ## Getting started
 
 First, you will need to download the binary program and make it executable:
