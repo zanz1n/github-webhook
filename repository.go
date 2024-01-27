@@ -1,11 +1,13 @@
 package main
 
 import (
-	"io"
+	"bytes"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/exec"
 	"sync"
+	"time"
 )
 
 func NewRepository(configPath string) (*Repository, error) {
@@ -61,72 +63,71 @@ func (r *Repository) GetEndpoint(route string) (*Endpoint, bool) {
 }
 
 func (r *Repository) HandleCommands(cmds [][]string, endpoint, event string) {
+	timeStart := time.Now()
+
 	success := 0
+	l := len(cmds)
 
 	var (
-		stdout io.ReadCloser
-		buf    []byte
-		err    error
+		out         bytes.Buffer
+		actionStart time.Time
 	)
-	for _, cmd := range cmds {
-		stdout, err = exec.Command(cmd[0], cmd[1:]...).StdoutPipe()
-		if err != nil {
+	for i, cmd := range cmds {
+		actionStart = time.Now()
+
+		action := fmt.Sprintf("%d/%d", i+1, l)
+		cmd := exec.Command(cmd[0], cmd[1:]...)
+
+		cmd.Stdout = &out
+		cmd.Stderr = &out
+
+		if err := cmd.Run(); err != nil {
 			slog.Error(
 				"Failed to execute action",
 				"endpoint",
 				endpoint,
 				"event",
 				event,
+				"action",
+				action,
 				"error",
 				err,
 			)
+		} else {
+			_, _ = os.Stderr.Write([]byte{'\n'})
+			_, _ = os.Stderr.Write(out.Bytes())
+			_, _ = os.Stderr.Write([]byte{'\n'})
 
-			continue
+			slog.Info(
+				"Action executed successfully",
+				"endpoint",
+				endpoint,
+				"event",
+				event,
+				"action",
+				action,
+				"time_taken",
+				time.Since(actionStart),
+			)
+			success++
 		}
 
-		_, _ = os.Stderr.Write([]byte{'\n'})
-
-		for {
-			buf = make([]byte, 0, 512)
-
-			_, err = stdout.Read(buf)
-			if err != nil {
-				if err == io.EOF {
-					_, _ = os.Stderr.Write(buf)
-					break
-				} else {
-					slog.Error(
-						"Failed to execute action",
-						"endpoint",
-						endpoint,
-						"event",
-						event,
-						"error",
-						err,
-					)
-
-					break
-				}
-			}
-
-			_, _ = os.Stderr.Write(buf)
-		}
-
-		_, _ = os.Stderr.Write([]byte{'\n'})
-		_ = stdout.Close()
+		out.Reset()
 	}
 
 	slog.Info(
-		"Finished handling endpoint actions",
+		"Finished handling actions",
 		"endpoint",
 		endpoint,
 		"event",
 		event,
 		"total_count",
-		len(cmds),
+		l,
 		"success_count",
 		success,
 		"failed_count",
-		len(cmds)-success,
+		l-success,
+		"time_taken",
+		time.Since(timeStart),
 	)
 }
