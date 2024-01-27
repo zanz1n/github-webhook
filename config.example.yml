@@ -1,10 +1,19 @@
 addr: 0.0.0.0:8080
 
+# An array of Endpoint objects
 endpoints:
+  # The route determines in which path this endpoint will listen for
   - route: /endpoint1
+    # The github secret of the webhook
     secret: secret123456
+    # An array of actions that can be programed based on the event
+    # that comes from github to this endpoint.
+    # If an event has no actions associated with it, it
+    # will be ignored.
     actions:
+      # The github event
       - event: push
+        # The command to be executed
         command:
           - echo
           - Push on repository 1
