@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 )
 
 var (
@@ -15,6 +16,7 @@ var (
 )
 
 func init() {
+	log.SetOutput(os.Stdout)
 	flag.Parse()
 }
 
