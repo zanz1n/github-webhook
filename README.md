@@ -8,7 +8,7 @@ First, you will need to download the binary program and make it executable:
 
 ```sh
 # Downloading with curl
-sudo curl -L -o /usr/bin/github-webhook https://github.com/zanz1n/github-webhook/releases/latest/download/github-webhook
+sudo curl -L -o /usr/bin/github-webhook https://github.com/zanz1n/github-webhook/releases/latest/download/github-webhook-$(uname -m)
 
 # Using chmod to change file permissions
 sudo chmod u+x /usr/bin/github-webhook
